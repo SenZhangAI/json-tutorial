@@ -15,11 +15,11 @@ static void lept_parse_whitespace(lept_context* c) {
     c->json = p;
 }
 
-static int lept_parse_literal(lept_context* c, lept_value* v, int type, char* literal) {
-    int i;
+static int lept_parse_literal(lept_context* c, lept_value* v, const char* literal, lept_type type) {
+    size_t i;
     EXPECT(c, *literal);
-    for(i = 0; literal[i + 1] != '\0'; i++) {
-        if (c->json[i] =='\0' || c->json[i] != literal[i+1])
+    for(i = 0; literal[i + 1]; i++) {
+        if(c->json[i] != literal[i + 1])
             return LEPT_PARSE_INVALID_VALUE;
     }
     c->json += i;
@@ -40,9 +40,9 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
 
 static int lept_parse_value(lept_context* c, lept_value* v) {
     switch (*c->json) {
-        case 't':  return lept_parse_literal(c, v, LEPT_TRUE, "true");
-        case 'f':  return lept_parse_literal(c, v, LEPT_FALSE, "false");
-        case 'n':  return lept_parse_literal(c, v, LEPT_NULL, "null");
+        case 't':  return lept_parse_literal(c, v, "true", LEPT_TRUE);
+        case 'f':  return lept_parse_literal(c, v, "false", LEPT_FALSE);
+        case 'n':  return lept_parse_literal(c, v, "null", LEPT_NULL);
         default:   return lept_parse_number(c, v);
         case '\0': return LEPT_PARSE_EXPECT_VALUE;
     }
