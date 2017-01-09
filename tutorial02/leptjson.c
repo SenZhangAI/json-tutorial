@@ -2,7 +2,9 @@
 #include <assert.h>  /* assert() */
 #include <stdlib.h>  /* NULL, strtod() */
 
-#define EXPECT(c, ch)       do { assert(*c->json == (ch)); c->json++; } while(0)
+#define EXPECT(c, ch)           do { assert(*c->json == (ch)); c->json++; } while(0)
+#define ISDIGIT(ch)             ((ch) >= '0' && (ch) <= '9')
+#define ISDIGIT_1TO9(ch)        ((ch) >= '1' && (ch) <= '9')
 
 typedef struct {
     const char* json;
@@ -29,12 +31,17 @@ static int lept_parse_literal(lept_context* c, lept_value* v, const char* litera
 
 static int lept_parse_number(lept_context* c, lept_value* v) {
     char* end;
-    /* \TODO validate number */
+
+    if(*c->json != '-' && !ISDIGIT(*c->json))
+        return LEPT_PARSE_INVALID_VALUE;
+
     v->n = strtod(c->json, &end);
     if (c->json == end)
         return LEPT_PARSE_INVALID_VALUE;
+
     c->json = end;
     v->type = LEPT_NUMBER;
+
     return LEPT_PARSE_OK;
 }
 
