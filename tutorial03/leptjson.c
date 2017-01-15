@@ -2,8 +2,15 @@
 #include <assert.h>  /* assert() */
 #include <errno.h>   /* errno, ERANGE */
 #include <math.h>    /* HUGE_VAL */
-#include <stdlib.h>  /* NULL, malloc(), realloc(), free(), strtod() */
 #include <string.h>  /* memcpy() */
+
+#ifdef _WINDOWS
+#define _CRTDBG_MAP_ALLOC
+#endif
+#include <stdlib.h>  /* NULL, malloc(), realloc(), free(), strtod() */
+#ifdef _WINDOWS
+#include <crtdbg.h>
+#endif
 
 #ifndef LEPT_PARSE_STACK_INIT_SIZE
 #define LEPT_PARSE_STACK_INIT_SIZE 256
@@ -119,6 +126,10 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                 c->top = head;
                 return LEPT_PARSE_MISS_QUOTATION_MARK;
             default:
+                if ((unsigned char)ch < 0x20) {
+                    c->top = head;
+                    return LEPT_PARSE_INVALID_STRING_CHAR;
+                }
                 PUTC(c, ch);
         }
     }
@@ -169,13 +180,13 @@ lept_type lept_get_type(const lept_value* v) {
 }
 
 int lept_get_boolean(const lept_value* v) {
-    assert(v != NULL);
-    return (v->type == LEPT_TRUE);
+    assert(v != NULL && (v->type == LEPT_TRUE || v->type == LEPT_FALSE)); /*注意这里还需判断v.type*/
+    return v->type == LEPT_TRUE;
 }
 
 void lept_set_boolean(lept_value* v, int b) {
-    assert(v != NULL);
-    v->type = (b == 0) ? LEPT_FALSE : LEPT_TRUE;
+    lept_free(v); /*注意这里如果之前是字符串还得先释放内存，lept_free中包含assert,不需此处断言,下同*/
+    v->type = b ? LEPT_TRUE : LEPT_FALSE;
     return;
 }
 
@@ -185,7 +196,7 @@ double lept_get_number(const lept_value* v) {
 }
 
 void lept_set_number(lept_value* v, double n) {
-    assert(v != NULL);
+    lept_free(v); /*注意这里如果之前是字符串还得先释放内存，lept_free中包含assert,不需此处断言,下同*/
     v->type = LEPT_NUMBER;
     v->u.n = n;
     return;
