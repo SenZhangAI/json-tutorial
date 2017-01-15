@@ -1,7 +1,14 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "leptjson.h"
+
+#ifdef _WINDOWS
+#define _CRTDBG_MAP_ALLOC
+#endif
+#include <stdlib.h>  /* NULL, malloc(), realloc(), free(), strtod() */
+#ifdef _WINDOWS
+#include <crtdbg.h>
+#endif
 
 static int main_ret = 0;
 static int test_count = 0;
@@ -191,6 +198,7 @@ static void test_access_boolean() {
     /* Use EXPECT_TRUE() and EXPECT_FALSE() */
     lept_value v;
     lept_init(&v);
+    lept_set_string(&v, "a", 1); /*故意设置一个string类型来测试最后的lept_free有没有异常*/
     lept_set_boolean(&v, 1);
     EXPECT_TRUE(lept_get_boolean(&v));
     lept_set_boolean(&v, 0);
@@ -201,6 +209,7 @@ static void test_access_boolean() {
 static void test_access_number() {
     lept_value v;
     lept_init(&v);
+    lept_set_string(&v, "a", 1); /*故意设置一个string类型来测试最后的lept_free有没有异常*/
     lept_set_number(&v, 255);
     EXPECT_EQ_INT(255, lept_get_number(&v));
     lept_free(&v);
@@ -237,6 +246,9 @@ static void test_parse() {
 }
 
 int main() {
+#ifdef _WINDOWS
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
     test_parse();
     printf("%d/%d (%3.2f%%) passed\n", test_pass, test_count, test_pass * 100.0 / test_count);
     return main_ret;
