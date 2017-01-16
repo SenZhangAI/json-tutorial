@@ -91,8 +91,8 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
 }
 
 static const char* lept_parse_hex4(const char* p, unsigned* u) {
-    *u = 0;
     int i;
+    *u = 0;
     for (i = 0; i < 4; i++) {
         char ch = *p++;
         *u <<= 4;
@@ -164,7 +164,7 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                                 STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX);
                             if(!(l >= 0xDC00 && l <= 0xDFFF))
                                 STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_SURROGATE);
-                            u = ((u - 0xD800) << 10 ) | (l - 0xDC00) + 0x10000;
+                            u = ((u - 0xD800) << 10 ) | (l - 0xDC00) | 0x10000;
                         }
                         lept_encode_utf8(c, u);
                         break;
